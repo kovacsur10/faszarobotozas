@@ -1,6 +1,12 @@
 import RPi.GPIO as GPIO
 import time
 
+class MutualLockout(Exception):
+	def __init__(self, value):
+		self.value = value
+	def __str__(self):
+		return repr(self.value)
+
 class Engine:
 	moving = None
 	rotating = None
@@ -11,6 +17,7 @@ class Engine:
 	idleSteer = 75
 	smoothStopRate = 1
 	smoothSpeedChangeRate = 1
+	smoothSteerChangeRate = 1
 	refreshRate = 0.1
 	
 	drivePort = 21
@@ -68,21 +75,43 @@ class Engine:
 			self.turn.ChangeDutyCycle( self.idleSteer / 10.0 )
 	
 	def smoothSetSpeed(self, speed):
-		# check the input value
-		if speed < 50:
-			speed = 50
-		elif 100 < speed:
-			speed = 100
-		
-		# smooth speed modification
-		if self.actualSpeed < speed:
-			changeRate = self.smoothSpeedChangeRate
+		if not self.rotating:
+			# check the input value
+			if speed < 50:
+				speed = 50
+			elif 100 < speed:
+				speed = 100
+			
+			# smooth speed modification
+			if self.actualSpeed < speed:
+				changeRate = self.smoothSpeedChangeRate
+			else:
+				changeRate = -1 * self.smoothSpeedChangeRate
+			r = range(self.actualSpeed, speed, changeRate)
+			for sp in r:
+				self.drive.ChangeDutyCycle(sp / 10.0)
+				time.sleep(self.refreshRate)
 		else:
-			changeRate = -1 * self.smoothSpeedChangeRate
-		r = range(self.actualSpeed, speed, changeRate)
-		for sp in r:
-			self.drive.ChangeDutyCycle(sp / 10.0)
-			time.sleep(self.refreshRate)
+			raise MutualLockout("Cannot move during rotating!")
+	
+	def smoothSetSteer(self, steer):
+		if not self.moving:
+			# check the input value
+			if steer < 50:
+				steer = 50
+			elif 100 < steer:
+				steer = 100
+			# smooth steer modification
+			if self.actualSteer < steer:
+				changeRate = self.smoothSteerChangeRate
+			else:
+				changeRate = -1 * self.smoothSteerChangeRate
+			r = range(self.actualSteer, steer, changeRate)
+			for sp in r:
+				self.turn.ChangeDutyCycle(sp / 10.0)
+				time.sleep(self.refreshRate)
+		else:
+			raise MutualLockout("Cannot rotate during moving!")
 		
 e = Engine()
 e.smoothSetSpeed(100)
