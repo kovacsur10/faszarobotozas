@@ -1,5 +1,31 @@
 import RPi.GPIO as GPIO
 import time
+import math
+
+class Angle:	
+	def __init__(self):
+		self.radian = 0.0
+	
+	# normalize :: radian -> radian
+	def normalize(self, value):
+		ct = math.trunc(value / math.pi)
+		return value - (ct * math.pi)
+	
+	# radian :: radian -> ()
+	def radian(self, value):
+		self.radian = normalize(value)
+	
+	# degree :: degree -> ()
+	def degree(self, value):
+		self.radian = normalize(math.radians(value))
+		
+	# getRadian :: -> radian
+	def getRadian(self):
+		return self.radian
+	
+	# getDegree :: -> degree
+	def getDegree(self):
+		return math.degrees(self.radian)
 
 class MutualLockout(Exception):
 	def __init__(self, value):
@@ -13,11 +39,11 @@ class Engine:
 	actualSpeed = None
 	actualSteer = None
 	
-	idleSpeed = 75
-	idleSteer = 75
-	smoothStopRate = 1
-	smoothSpeedChangeRate = 1
-	smoothSteerChangeRate = 1
+	idleSpeed = 7500
+	idleSteer = 7500
+	smoothStopRate = 25
+	smoothSpeedChangeRate = 25
+	smoothSteerChangeRate = 25
 	refreshRate = 0.1
 	
 	drivePort = 21
@@ -35,21 +61,27 @@ class Engine:
 		GPIO.setup( self.drivePort, GPIO.OUT )
 		GPIO.setup( self.turnPort, GPIO.OUT )
 		self.drive=GPIO.PWM( self.drivePort, 50 )
-		self.drive.start( self.actualSpeed / 10.0 )
+		self.drive.start( self.actualSpeed / 1000.0 )
 		self.turn=GPIO.PWM( self.turnPort, 50 )
-		self.turn.start( self.actualSteer / 10.0 )
+		self.turn.start( self.actualSteer / 1000.0 )
 	
 	def cleanUp(self):
+		hardStop()
 		self.drive.stop()
 		self.turn.stop()
 		GPIO.cleanup()
 	
-	# movement functions
-	def stop(self):
-		self.drive.ChangeDutyCycle( self.idleSpeed / 10.0 )
-		self.turn.ChangeDutyCycle( self.idleSteer / 10.0 )
+	### movement functions ###
 	
-	def smoothStop(self):
+	# hardStop :: -> ()
+	def hardStop(self):
+		self.drive.ChangeDutyCycle( self.idleSpeed / 1000.0 )
+		self.turn.ChangeDutyCycle( self.idleSteer / 1000.0 )
+		self.moving = False
+		self.rotating = False
+	
+	#stop :: -> ()
+	def stop(self):
 		if moving:
 			actual = self.actualSpeed
 			idle = self.idleSpeed
@@ -65,57 +97,141 @@ class Engine:
 		#smooth stop
 		if self.moving:
 			for speed in r:
-				self.drive.ChangeDutyCycle(speed / 10.0)
+				self.drive.ChangeDutyCycle(speed / 1000.0)
 				time.sleep(self.refreshRate)
-			self.drive.ChangeDutyCycle( self.idleSpeed / 10.0 )
+			self.drive.ChangeDutyCycle( self.idleSpeed / 1000.0 )
 		else:
 			for steer in r:
-				self.turn.ChangeDutyCycle(steer / 10.0)
+				self.turn.ChangeDutyCycle(steer / 1000.0)
 				time.sleep(self.refreshRate)
-			self.turn.ChangeDutyCycle( self.idleSteer / 10.0 )
+			self.turn.ChangeDutyCycle( self.idleSteer / 1000.0 )
+		self.moving = False
+		self.rotating = False
 	
-	def smoothSetSpeed(self, speed):
+	# moveForward :: [1..100] -> () raises MutualLockout exception 
+	def moveForward(self, speed):
 		if not self.rotating:
-			# check the input value
-			if speed < 50:
-				speed = 50
-			elif 100 < speed:
-				speed = 100
-			
-			# smooth speed modification
-			if self.actualSpeed < speed:
-				changeRate = self.smoothSpeedChangeRate
+			self.moving = True
+			# check input value
+			if speed > 100:
+				speed = 10000
+			elif speed < 1:
+				speed = 7525
 			else:
-				changeRate = -1 * self.smoothSpeedChangeRate
-			r = range(self.actualSpeed, speed, changeRate)
-			for sp in r:
-				self.drive.ChangeDutyCycle(sp / 10.0)
-				time.sleep(self.refreshRate)
+				speed = 7500 + (speed * 25)
+			smoothSetSpeed(speed)
 		else:
-			raise MutualLockout("Cannot move during rotating!")
+			raise MutualLockout("Cannot move during rotation!")
 	
-	def smoothSetSteer(self, steer):
-		if not self.moving:
-			# check the input value
-			if steer < 50:
-				steer = 50
-			elif 100 < steer:
-				steer = 100
-			# smooth steer modification
-			if self.actualSteer < steer:
-				changeRate = self.smoothSteerChangeRate
+	# moveBackward :: [1..100] -> () raises MutualLockout exception 
+	def moveBackward(self, speed):
+		if not self.rotating:
+			self.moving = True
+			# check input value
+			if speed > 100:
+				speed = 5000
+			elif speed < 1:
+				speed = 7475
 			else:
-				changeRate = -1 * self.smoothSteerChangeRate
-			r = range(self.actualSteer, steer, changeRate)
-			for sp in r:
-				self.turn.ChangeDutyCycle(sp / 10.0)
-				time.sleep(self.refreshRate)
+				speed = 7500 - speed * 25
+			smoothSetSpeed(speed)
 		else:
-			raise MutualLockout("Cannot rotate during moving!")
-		
+			raise MutualLockout("Cannot move during rotation!")
+	
+	# private
+	# smoothSetSpeed :: [5000..10000] -> ()
+	def smoothSetSpeed(self, speed):
+		# smooth speed modification
+		if self.actualSpeed < speed:
+			changeRate = self.smoothSpeedChangeRate
+		else:
+			changeRate = -1 * self.smoothSpeedChangeRate
+		r = range(self.actualSpeed, speed, changeRate)
+		for sp in r:
+			self.drive.ChangeDutyCycle(sp / 1000.0)
+			time.sleep(self.refreshRate)
+	
+	# private
+	# smoothSetSteer :: [5000..10000] -> ()
+	def smoothSetSteer(self, steer):
+		# smooth steer modification
+		if self.actualSteer < steer:
+			changeRate = self.smoothSteerChangeRate
+		else:
+			changeRate = -1 * self.smoothSteerChangeRate
+		r = range(self.actualSteer, steer, changeRate)
+		for sp in r:
+			self.turn.ChangeDutyCycle(sp / 1000.0)
+			time.sleep(self.refreshRate)
+	
+	# turnLeft :: [1..100] -> ()
+	def turnLeft(self, steer): # TODO: test directions!
+		if not self.moving:
+			self.rotating = True
+			# check input value
+			if steer > 100:
+				steer = 10000
+			elif steer < 1:
+				steer = 7525
+			else:
+				steer = 7500 + (steer * 25)
+			smoothSetSteer(steer)
+		else:
+			raise MutualLockout("Cannot turn left during moving forward or backward!");
+	
+	# turnRight :: [1..100] -> ()
+	def turnRight(self, steer): # TODO: test directions!
+		if not self.moving:
+			self.rotating = True
+			# check input value
+			if steer > 100:
+				steer = 5000
+			elif steer < 1:
+				steer = 7475
+			else:
+				steer = 7500 - steer * 25
+			smoothSetSteer(steer)
+		else:
+			raise MutualLockout("Cannot turn left during moving forward or backward!");
+	
+#	# turn :: Angle -> ()
+#	def turn(self, angle):
+#		if not self.moving and not self.rotating:
+#			self.rotating = True
+#			if angle < 0.0: # left
+#				
+#			else: # right
+#				
+#		else:
+#			raise MutualLockout("Cannot turn left or right during doing any movement!")
+	
 e = Engine()
-e.smoothSetSpeed(100)
+e.moveForward(100)
 time.sleep(10)
+
+e.moveBackward(25)
+time.sleep(10)
+
 e.stop()
+time.sleep(3)
+
+e.moveBackward(100)
+e.hardStop()
+
+time.sleep(1)
+
+e.turnLeft(100)
+time.sleep(3)
+
+e.turnRight(100)
+time.sleep(3)
+
+e.turnLeft(1000)
+time.sleep(1)
+
+try:
+	e.moveForward(10)
+except MutualLockout:
+	e.hardStop()
 
 e.cleanUp()
