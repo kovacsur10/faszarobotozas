@@ -7,14 +7,7 @@ import time
 import serial
 import string
 
-ser = serial.Serial(
-	port='/dev/ttyAMA0',
-	baudrate = 9600,
-	parity= serial.PARITY_NONE,
-	stopbits=serial.STOPBITS_ONE,
-	bytesize=serial.EIGHTBITS,
-	timeout=1
-)
+
 counter=0
 
 class GPS:
@@ -51,7 +44,23 @@ class GPS:
 	age = None
 	diff = None
 	checksum = None
-	def __init__(self, data):
+	
+	gps = None
+	data = None
+	
+	def __init__(self):			
+		ser = serial.Serial(
+			port='/dev/ttyAMA0',
+			baudrate = 9600,
+			parity= serial.PARITY_NONE,
+			stopbits=serial.STOPBITS_ONE,
+			bytesize=serial.EIGHTBITS,
+			timeout=1
+		)
+		update()
+	
+	def update(self):
+		data = ser.readline()
 		if data[0:6] == '$GPGGA':
 			tmp = data[7:].split(',')
 			self.utc = tmp[0]
@@ -69,12 +78,10 @@ class GPS:
 			self.age = tmp[12]
 			self.diff = tmp[13]
 			self.checksum = tmp[14]
-	
 
+gps = GPS()
 while 1:
-	data = ser.readline()
-	if data[0:6] == '$GPGGA':
-		ga = GPS(data)
-		print (ga.utc)
+	print (gps.utc)
+	gps.update()
 	
 	# print data
