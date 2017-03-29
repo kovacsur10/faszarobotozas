@@ -45,9 +45,10 @@ class GPS:
 	
 	gps = None
 	data = None
+	changed = False
 	
 	def __init__(self):			
-		ser = serial.Serial(
+		self.gps = serial.Serial(
 			port='/dev/ttyAMA0',
 			baudrate = 9600,
 			parity= serial.PARITY_NONE,
@@ -55,16 +56,24 @@ class GPS:
 			bytesize=serial.EIGHTBITS,
 			timeout=1
 		)
-		update()
+		self.update()
 	
 	def update(self):
-		data = ser.readline()
-		if data[0:6] == '$GPGGA':
-			tmp = data[7:].split(',')
+		self.changed = False
+		self.data = self.gps.readline()
+		if self.data[0:6] == '$GPGGA':
+			self.changed = True
+			tmp = self.data[7:].split(',')
 			self.utc = tmp[0]
-			self.latitude = float(tmp[1]) / 100
+			if (tmp[1] != ""):
+				self.latitude = float(tmp[1]) / 100
+			else:
+				self.latitude = 0.0
 			self.lat_dir = tmp[2]
-			self.longitude = float(tmp[3]) / 100
+			if (tmp[3] != ""):
+				self.longitude = float(tmp[3]) / 100
+			else:
+				self.longitude = 0.0
 			self.lon_dir = tmp[4]
 			self.quality = tmp[5]
 			self.satelites = tmp[6]
@@ -75,7 +84,7 @@ class GPS:
 			self.geo_unit = tmp[11]
 			self.age = tmp[12]
 			self.diff = tmp[13]
-			self.checksum = tmp[14]
+			# self.checksum = tmp[14]
 
 def haversine(lon1, lat1, lon2, lat2):
 	"""
@@ -95,18 +104,25 @@ def haversine(lon1, lat1, lon2, lat2):
 		
 			
 gps = GPS()
+
+lon1 = gps.longitude
+lat1 = gps.latitude
+
 while 1:
-	print (gps.utc)
-	print (gps.longitude)
-	print (gps.latitude)
-	
+	l = gps.changed
+	if l: 
+		print gps.data
+		print "utc: " + (gps.utc)
+		print (gps.longitude)
+		print (gps.latitude)
+
+	gps.update()
+	lon2 = gps.longitude
+	lat2 = gps.latitude
+
+	if l: 
+		print (haversine(lon1, lat1, lon2, lat2))
+	time.sleep(0.5)
+
 	lon1 = gps.longitude
 	lat1 = gps.latitude
-	gps.update()
-	sleep(0.5)
-	lon1 = gps.longitude
-	lat1 = gps.latitude
-	gps.update()
-	
-	print (haversine(lon1, lat1, lon2, lat2))
-	sleep(0.5)
