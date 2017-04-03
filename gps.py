@@ -1,129 +1,76 @@
-#!/usr/bin/env python
-
-# mkdir /media/usb
-# mount /dev/sda1 /media/usb
-
+import threading
 import time
-import serial
-#import myserial as serial
-import string
 from math import radians, cos, sin, asin, sqrt
 
+import gpsbase
+
+threadLock = threading.Lock() # mutex for GPS shared data
+
+# GPS thread for querying the GPSbase class (device) for data
+class gpsQueryThread (threading.Thread):
+    def __init__(self, gps, queryTime, parent):
+        threading.Thread.__init__(self)
+        self.gps = gps
+        self.queryTime = queryTime
+        self.parent = parent
+        
+    def run(self):
+        print "GPS query thread starts"
+        while True:
+            self.gps.update()
+            
+            lon = self.gps.longitude
+            lat = self.gps.latitude
+            self.parent.updateData(lon, lat)
+            time.sleep(self.queryTime)
+        print "GPS query thread ends"
+    
 class GPS:
-	"""$GPGGA,hhmmss.ss,llll.ll,a,yyyyy.yy,a,x,xx,x.x,x.x,M,x.x,M,x.x,xxxx*hh
-	1    = UTC of Position
-	2    = Latitude
-	3    = N or S
-	4    = Longitude
-	5    = E or W
-	6    = GPS quality indicator (0=invalid; 1=GPS fix; 2=Diff. GPS fix)
-	7    = Number of satellites in use [not those in view]
-	8    = Horizontal dilution of position
-	9    = Antenna altitude above/below mean sea level (geoid)
-	10   = Meters  (Antenna height unit)
-	11   = Geoidal separation (Diff. between WGS-84 earth ellipsoid and
-				 mean sea level.  -=geoid is below WGS-84 ellipsoid)
-	12   = Meters  (Units of geoidal separation)
-	13   = Age in seconds since last update from diff. reference station
-	14   = Diff. reference station ID#
-	15   = Checksum
-	"""
-	utc = None
-	latitude = None
-	lat_dir = None
-	longitude = None
-	lon_dir = None
-	quality = None
-	satelites = None
-	hdop = None
-	altitude = None
-	alt_unit = None
-	geoidal = None
-	geo_unit = None
-	age = None
-	diff = None
-	checksum = None
-	
-	gps = None
-	data = None
-	changed = False
-	
-	def __init__(self):			
-		self.gps = serial.Serial(
-			port='/dev/ttyAMA0',
-			baudrate = 9600,
-			parity= serial.PARITY_NONE,
-			stopbits=serial.STOPBITS_ONE,
-			bytesize=serial.EIGHTBITS,
-			timeout=1
-		)
-		self.update()
-	
-	def update(self):
-		self.changed = False
-		self.data = self.gps.readline()
-		if self.data[0:6] == '$GPGGA':
-			self.changed = True
-			tmp = self.data[7:].split(',')
-			self.utc = tmp[0]
-			if (tmp[1] != ""):
-				self.latitude = float(tmp[1]) / 100
-			else:
-				self.latitude = 0.0
-			self.lat_dir = tmp[2]
-			if (tmp[3] != ""):
-				self.longitude = float(tmp[3]) / 100
-			else:
-				self.longitude = 0.0
-			self.lon_dir = tmp[4]
-			self.quality = tmp[5]
-			self.satelites = tmp[6]
-			self.hdop = tmp[7]
-			self.altitude = tmp[8]
-			self.alt_unit = tmp[9]
-			self.geoidal = tmp[10]
-			self.geo_unit = tmp[11]
-			self.age = tmp[12]
-			self.diff = tmp[13]
-			# self.checksum = tmp[14]
+    gps = None
+    seen = False
+    previous = (None, None, None)
+    actual = (None, None, None)
 
-def haversine(lon1, lat1, lon2, lat2):
-	"""
-	Calculate the great circle distance between two points 
-	on the earth (specified in decimal degrees)
-	"""
-	# convert decimal degrees to radians 
-	lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    def __init__(self):
+        self.gps = gpsbase.GPSBase()
+        self.seen = False
+        self.queryThread = gpsQueryThread(self.gps, 0.5, self)
+        self.previous = (None, None, None)
+        self.actual = (None, None, None)
+        
+    def start(self):
+        self.queryThread.start()
+    
+    #private - DO NOT CALL FROM OUTSIDE!
+    def __getDistance(self, lon1, lat1, lon2, lat2): #previously this was 'haversine'
+        """
+        Calculate the great circle distance between two points 
+        on the earth (specified in decimal degrees)
+        """
+        if lon1 == None or lat1 == None or lon2 == None or lat2 == None:
+            return None
+            
+        # convert decimal degrees to radians 
+        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
 
-	# haversine formula 
-	dlon = lon2 - lon1 
-	dlat = lat2 - lat1 
-	a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-	c = 2 * asin(sqrt(a)) 
-	r = 6371 # Radius of earth in kilometers. Use 3956 for miles
-	return c * r
-		
-			
-gps = GPS()
-
-lon1 = gps.longitude
-lat1 = gps.latitude
-
-while 1:
-	l = gps.changed
-	if l: 
-		print gps.data
-		print "utc: " + (gps.utc)
-		print (gps.longitude)
-		print (gps.latitude)
-
-	gps.update()
-	lon2 = gps.longitude
-	lat2 = gps.latitude
-
-	if l: 
-		print (haversine(lon1, lat1, lon2, lat2))
-	time.sleep(0.5)
-
-	lon1 = gps.longitude
-	lat1 = gps.latitude
+        # haversine formula 
+        dlon = lon2 - lon1 
+        dlat = lat2 - lat1 
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+        c = 2 * asin(sqrt(a)) 
+        r = 6371 # Radius of earth in kilometers. Use 3956 for miles
+        return c * r
+        
+    def updateData(self, lon, lat):
+        threadLock.acquire()
+        if self.seen:
+            self.seen = False
+            self.previous = self.actual
+        dist = self.__getDistance(self.actual[0], self.actual[1], lon, lat);
+        self.actual = (lon, lat, dist)
+        threadLock.release()
+        
+    def get(self):
+        threadLock.acquire()
+        print "{v1}N {v2}E {d}delta".format(v1=self.actual[0], v2=self.actual[1], d=self.actual[2])
+        threadLock.release()

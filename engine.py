@@ -213,13 +213,3 @@ class Engine:
 #				
 #		else:
 #			raise MutualLockout("Cannot turn left or right during doing any movement!")
-	
-e = Engine()
-
-e.moveForward(60)
-time.sleep(1)
-
-e.stop()
-time.sleep(2)
-
-e.cleanUp()
