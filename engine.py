@@ -94,9 +94,9 @@ class Engine:
 			
 		# set the range
 		if actual > idle:
-			r = range(actual, idle, -1 * self.smoothStopRate)
+			r = xrange(actual, idle, -1 * self.smoothStopRate)
 		else:
-			r = range(actual, idle, self.smoothStopRate)
+			r = xrange(actual, idle, self.smoothStopRate)
 		#smooth stop
 		if self.moving:
 			for speed in r:
@@ -151,7 +151,7 @@ class Engine:
 			changeRate = self.smoothSpeedChangeRate
 		else:
 			changeRate = -1 * self.smoothSpeedChangeRate
-		r = range(self.actualSpeed, speed, changeRate)
+		r = xrange(self.actualSpeed, speed, changeRate)
 		for sp in r:
 			self.drive.ChangeDutyCycle(sp / 1000.0)
 			time.sleep(self.refreshRate)
@@ -166,7 +166,7 @@ class Engine:
 			changeRate = self.smoothSteerChangeRate
 		else:
 			changeRate = -1 * self.smoothSteerChangeRate
-		r = range(self.actualSteer, steer, changeRate)
+		r = xrange(self.actualSteer, steer, changeRate)
 		for sp in r:
 			self.turn.ChangeDutyCycle(sp / 1000.0)
 			time.sleep(self.refreshRate)

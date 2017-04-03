@@ -72,5 +72,8 @@ class GPS:
         
     def get(self):
         threadLock.acquire()
-        print "{v1}N {v2}E {d}delta".format(v1=self.actual[0], v2=self.actual[1], d=self.actual[2])
+        self.seen = True
+        retVal = self.actual
+        self.actual = (self.actual[0], self.actual[1], None)
         threadLock.release()
+        return retVal
