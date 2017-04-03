@@ -5,6 +5,7 @@
 
 import time
 import serial
+#import myserial as serial
 import string
 from math import radians, cos, sin, asin, sqrt
 
