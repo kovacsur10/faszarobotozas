@@ -38,6 +38,10 @@ class Serial:
 					minEast = 60
 				if maxEast > 80:
 					maxEast = 80
+				if maxNorth < minNorth:
+					minNorth = maxNorth
+				if maxEast < minEast:
+					minEast = maxEast
 				north = random.randint(minNorth, maxNorth)
 				east = random.randint(minEast, maxEast)
 		time.sleep(0.5)
