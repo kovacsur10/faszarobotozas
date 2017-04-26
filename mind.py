@@ -12,6 +12,7 @@ class Mind:
 		self.gps = gps.GPS()
 		self.gps.start()
 		self.setNextPoint(Point(None, None))
+		self.currentPosition = None
 		
 	def setNextPoint(self, checkPoint):
 		self.checkPoint = checkPoint
@@ -19,13 +20,15 @@ class Mind:
 	def getLocation(self):
 		delta = self.gps.get()
 		print delta
-		currentPosition = delta[0]
+		self.currentPosition = delta[0]
+		if self.currentPosition != None:
+			self.currentPosition.print_()
 
 	def test(self):
-		self.engine.moveForward(60)
-		time.sleep(1)
-		self.engine.stop()
-		time.sleep(2)
+		# self.engine.moveForward(60)
+		# time.sleep(1)
+		# self.engine.stop()
+		# time.sleep(2)
 		for i in range(1,100):
 			self.getLocation()
 			time.sleep(1)

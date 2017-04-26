@@ -42,18 +42,20 @@ class GPS:
 		if self.seen:
 			self.seen = False
 			self.previous = self.actual
-		p1 = Point(self.actual[0], self.actual[1])
-		p2 = Point(lon, lat)
-		dist = p1.getDistanceFrom(p2)
-		orientation = p1.getAngleTo(p2)
-		self.actual = (p2, dist, orientation)
+		pt = Point(lon, lat)
+		if self.actual[0] == None:
+			self.actual = (pt, 0.0, 0.0)
+		else:
+			pSource = self.actual[0]
+			dist = pSource.getDistanceFrom(pt)
+			orientation = pSource.getAngleTo(pt)
+			self.actual = (pt, dist, orientation)
 		threadLock.release()
 				
 	def get(self):
 		threadLock.acquire()
 		self.seen = True
 		retVal = self.actual
-		pt = Point(self.actual[0], self.actual[1])
-		self.actual = (pt, None, None)
+		self.actual = (self.actual[0], None, None)
 		threadLock.release()
 		return retVal

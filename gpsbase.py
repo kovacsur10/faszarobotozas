@@ -5,7 +5,6 @@
 
 import time
 import serial
-#import myserial as serial
 import string
 
 class GPSBase:

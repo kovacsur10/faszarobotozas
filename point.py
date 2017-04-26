@@ -32,3 +32,6 @@ class Point:
 		c = 2 * asin(sqrt(a)) 
 		r = 6371
 		return c * r
+		
+	def print_(self):
+		print "{x} {y}".format(x=self.x, y=self.y)
