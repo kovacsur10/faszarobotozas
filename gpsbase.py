@@ -82,5 +82,6 @@ class GPSBase:
 			self.geoidal = tmp[10]
 			self.geo_unit = tmp[11]
 			self.age = tmp[12]
-			self.diff = tmp[13]
-			# self.checksum = tmp[14]
+			tmp2 = tmp[13].split('*')
+			self.diff = tmp2[0]
+			self.checksum = tmp2[1]

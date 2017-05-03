@@ -31,7 +31,7 @@ class Point:
 		a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
 		c = 2 * asin(sqrt(a)) 
 		r = 6371
-		return c * r
+		return c * r * 1000
 		
 	def print_(self):
 		print "{x} {y}".format(x=self.x, y=self.y)
