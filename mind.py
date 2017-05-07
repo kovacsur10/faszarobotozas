@@ -21,6 +21,7 @@ class Mind:
 		self.maxPositions = 5
 		self.lastDistance = float("inf")
 		self.lastAngle = float("inf")
+		self.distanceEpsilon = 1.0
 		
 	def setNextPoint(self, checkPoint):
 		self.checkPoint = checkPoint
@@ -56,6 +57,9 @@ class Mind:
 			return distance / len(self.positionQueue)
 		else:
 			return float("inf")
+			
+	def resetQueue(self):
+		self.positionQueue = deque()
 	
 	def turnLeftABit(self):
 		self.engine.turnLeft(100)
@@ -74,24 +78,33 @@ class Mind:
 		
 	def test(self):
 		self.engine.moveForward(60)
-		time.sleep(1)
-		self.engine.stop()
-		time.sleep(2)
-		for i in range(1,100):
+		while self.getAverageDistanceFromCheckpoint() > self.distanceEpsilon:
 			self.getLocation()
-			if self.lastDistance < self.getAverageDistanceFromCheckpoint():
-				print "WARNING!"
-			angle = self.getAverageAngleToCheckpoint()
-			if angle < -160.0 or 160.0 < angle:
-				self.turn180degrees()
-			elif angle < -20.0:
-				self.turnLeftABit()
-			elif 20.0 < angle:
-				self.turnRightABit()
-				
-			print "{ang} {dist}".format(ang=self.lastAngle, dist=self.lastDistance)
+		
+			if len(self.positionQueue) == self.maxPositions:			
+				if self.lastDistance < self.getAverageDistanceFromCheckpoint():
+					print "WARNING!"
+				angle = self.getAverageAngleToCheckpoint()
+				if angle < -160.0 or 160.0 < angle:
+					self.engine.stop()
+					self.turn180degrees()
+					self.engine.moveForward(60)
+					self.resetQueue()
+				elif angle < -20.0:
+					self.engine.stop()
+					self.turnLeftABit()
+					self.engine.moveForward(60)
+					self.resetQueue()
+				elif 20.0 < angle:
+					self.engine.stop()
+					self.turnRightABit()
+					self.engine.moveForward(60)
+					self.resetQueue()
+					
+				print "{ang} {dist}".format(ang=self.lastAngle, dist=self.lastDistance)
 			time.sleep(1)
 		self.engine.cleanUp()
+		print "Robot is at the checkpoint!"
 
 mind = Mind()
 mind.setNextPoint(Point(19.034780, 47.284399))
