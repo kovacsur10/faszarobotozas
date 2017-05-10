@@ -21,7 +21,7 @@ class Mind:
 		self.maxPositions = 5
 		self.lastDistance = float("inf")
 		self.lastAngle = float("inf")
-		self.distanceEpsilon = 1.0
+		self.distanceEpsilon = 3.0
 		
 	def setNextPoint(self, checkPoint):
 		self.checkPoint = checkPoint
@@ -44,7 +44,10 @@ class Mind:
 		if self.checkPoint != None and len(self.positionQueue) != 0:
 			distance = 0.0
 			for position in self.positionQueue:
-				distance += position.getDistanceFrom(self.checkPoint)
+				try:
+					distance += position.getDistanceFrom(self.checkPoint)
+				except:
+					print "LOL"
 			return distance / len(self.positionQueue)
 		else:
 			return float("inf")
@@ -53,7 +56,10 @@ class Mind:
 		if self.checkPoint != None and len(self.positionQueue) != 0:
 			distance = 0.0
 			for position in self.positionQueue:
-				distance += position.getAngleTo(self.checkPoint)
+				try:
+					distance += position.getAngleTo(self.checkPoint)
+				except:
+					print "LOL angle"
 			return distance / len(self.positionQueue)
 		else:
 			return float("inf")
@@ -63,17 +69,17 @@ class Mind:
 	
 	def turnLeftABit(self):
 		self.engine.turnLeft(100)
-		time.sleep(1)
+		time.sleep(0.3)
 		self.engine.hardStop()
 	
 	def turnRightABit(self):
 		self.engine.turnRight(100)
-		time.sleep(1)
+		time.sleep(0.3)
 		self.engine.hardStop()
 	
 	def turn180degrees(self):
 		self.engine.turnLeft(100)
-		time.sleep(3)
+		time.sleep(1)
 		self.engine.hardStop()
 		
 	def test(self):
@@ -85,7 +91,7 @@ class Mind:
 				if self.lastDistance < self.getAverageDistanceFromCheckpoint():
 					print "WARNING!"
 				angle = self.getAverageAngleToCheckpoint()
-				if angle < -160.0 or 160.0 < angle:
+				if angle < -140.0 or 140.0 < angle:
 					self.engine.stop()
 					self.turn180degrees()
 					self.engine.moveForward(60)
@@ -101,11 +107,19 @@ class Mind:
 					self.engine.moveForward(60)
 					self.resetQueue()
 					
-				print "{ang} {dist}".format(ang=self.lastAngle, dist=self.lastDistance)
+				print "angle: {ang} distance: {dist}".format(ang=self.lastAngle, dist=self.lastDistance)
 			time.sleep(1)
 		self.engine.cleanUp()
 		print "Robot is at the checkpoint!"
+		
+	def killAll(self):
+		self.gps.kill()
 
 mind = Mind()
-mind.setNextPoint(Point(19.034780, 47.284399))
-mind.test()
+try:
+	mind.setNextPoint(Point(19.034780, 47.284399))
+	mind.test()
+except Exception as ex:
+	print type(ex)
+finally:
+	mind.killAll()

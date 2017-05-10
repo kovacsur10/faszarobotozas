@@ -15,7 +15,7 @@ class gpsQueryThread (threading.Thread):
 				
 	def run(self):
 		print "GPS query thread starts"
-		while True:
+		while self.parent.running:
 			self.gps.update()
 			self.parent.updateData(self.gps.longitude, self.gps.latitude)
 			time.sleep(self.queryTime)
@@ -26,6 +26,7 @@ class GPS:
 	seen = False
 	previous = (None, None, None)
 	actual = (None, None, None)
+	running = True
 
 	def __init__(self):
 		self.gps = gpsbase.GPSBase()
@@ -59,3 +60,6 @@ class GPS:
 		self.actual = (self.actual[0], None, None)
 		threadLock.release()
 		return retVal
+		
+	def kill(self):
+		self.running = False

@@ -1,0 +1,4 @@
+GPS query thread starts
+19.034753 47.284418
+Robot is at the checkpoint!
+GPS query thread ends

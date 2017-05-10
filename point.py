@@ -13,14 +13,14 @@ class Point:
 		
 	def getAngleTo(self, point):
 		if point.x == None or point.y == None or self.x == None or self.y == None:
-				return None
+			return None
 		y = sin(point.x - self.x) * cos(point.y)
 		x = cos(self.y) * sin(point.y) - sin(self.y) * cos(point.y) * cos(point.x - self.x)
 		return degrees(atan2(y, x))
 		
 	def getDistanceFrom(self, point): #previously this was 'haversine'
 		if point.x == None or point.y == None or self.x == None or self.y == None:
-				return None
+			return None
 	
 		# convert decimal degrees to radians 
 		lon1, lat1, lon2, lat2 = map(radians, [self.x, self.y, point.x, point.y])

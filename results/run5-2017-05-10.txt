@@ -1,0 +1,5 @@
+GPS query thread starts
+None None
+LOL
+Robot is at the checkpoint!
+GPS query thread ends
