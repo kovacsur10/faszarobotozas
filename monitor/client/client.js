@@ -2,43 +2,54 @@ var counter = 0;
 var urlTag = "http://localhost/server/";
 
 function startRobot(){
-  ajaxRequest("start", {}, function(value){
-    $("#alma").html(value);
-  });
+	ajaxRequest("start", {}, function(value){
+		$("#alma").html(value);
+	});
 }
 
 function stopRobot(){
-  ajaxRequest("stop", {}, function(value){
-    $("#alma").html(value);
-  });
+	ajaxRequest("stop", {}, function(value){
+		$("#alma").html(value);
+	});
 }
 
 function addCheckpoint(latitude, longitude){
-  counter++;
-  ajaxRequest("add", {id: counter, lat: latitude, lon: longitude}, function(value){
-    $("#alma").html(value);
-  });
+	counter++;
+	ajaxRequest("add", {id: counter, lat: latitude, lon: longitude}, function(value){
+		$("#alma").html(value);
+	});
 }
 
 function removeCheckpoint(id_val){
-  ajaxRequest("remove", {id: id_val}, function(value){
-    $("#alma").html(value);
-  });
+	ajaxRequest("remove", {id: id_val}, function(value){
+		$("#alma").html(value);
+	});
 }
 
 function ajaxRequest(mode, param_values, fun){
-  var jsonParam = JSON.stringify(param_values, null, 2);
-  $.ajax({
-    url: urlTag+"command.php", 
-    type: "POST",
-    xhrFields: {
-      withCredentials: false
-    },
-    crossDomain: true,
-    data: {
-      action: mode,
-      params: jsonParam
-    },
-    success: fun
-  });
+	var jsonParam = JSON.stringify(param_values, null, 2);
+	$.ajax({
+		url: urlTag+"command.php", 
+		type: "POST",
+		xhrFields: {
+			withCredentials: false
+		},
+		crossDomain: true,
+		data: {
+			action: mode,
+			params: jsonParam
+		},
+		success: fun
+	});
 }
+
+$(function(){
+	setInterval(function() {
+		$.getJSON({
+			url: urlTag+"getdata.php",
+			success: function(value){
+				console.log(value);
+			}
+		});
+	}, 1000);
+});
