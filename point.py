@@ -33,5 +33,8 @@ class Point:
 		r = 6371
 		return c * r * 1000
 		
+	def __str__(self):
+		return "{x} {y}".format(x=self.x, y=self.y)
+		
 	def print_(self):
-		print "{x} {y}".format(x=self.x, y=self.y)
+		print str(self)
