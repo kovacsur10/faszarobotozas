@@ -19,9 +19,12 @@ class Mind:
 		self.gpsFrequency = 0.5
 		self.gps = gps.GPS(self.gpsFrequency)
 		self.gps.start()
+		self.logger = logger.FileLogger()
+		
 		self.checkPoint = Point(None, None)
 		self.positionQueue = deque()
 		self.maxPositions = 5
+		self.distanceEpsilon = 3.0
 		
 		self.lastPosition = Point(None, None)
 		self.lastAngle = float("inf")
@@ -33,9 +36,8 @@ class Mind:
 		self.currentDistance = float("inf")
 		self.currentAngleToCheckpoint = float("inf")
 		
-		#self.distanceEpsilon = 3.0
-		self.distanceEpsilon = 0.0
-		self.logger = logger.FileLogger()
+		time.sleep(1.5*self.gpsFrequency)
+		self.collectPositions()
 		
 	def setNextPoint(self, checkPoint):
 		self.checkPoint = checkPoint
@@ -50,7 +52,7 @@ class Mind:
 		self.positionQueue.append(delta[0])
 		
 	def getAverageDistanceFromCheckpoint(self):
-		if self.checkPoint != None and len(self.positionQueue) != 0:
+		if not self.checkPoint.isNone() and len(self.positionQueue) != 0:
 			distance = 0.0
 			for position in self.positionQueue:
 				try:
@@ -62,7 +64,7 @@ class Mind:
 			return float("inf")
 			
 	def getAverageAngleToCheckpoint(self):
-		if self.checkPoint != None and len(self.positionQueue) != 0:
+		if not self.checkPoint.isNone() and len(self.positionQueue) != 0:
 			angle = 0.0
 			for position in self.positionQueue:
 				try:
@@ -74,7 +76,7 @@ class Mind:
 			return float("inf")
 			
 	def getAveragePosition(self):
-		if self.checkPoint != None and len(self.positionQueue) != 0:
+		if len(self.positionQueue) != 0:
 			x = 0.0
 			y = 0.0
 			for position in self.positionQueue:
@@ -89,7 +91,7 @@ class Mind:
 			return Point(None, None)
 		
 	def getAverageAngle(self):
-		if self.checkPoint != None and len(self.positionQueue) != 0:
+		if not self.lastPosition.isNone() and len(self.positionQueue) != 0:
 			angle = 0.0
 			for position in self.positionQueue:
 				try:
@@ -148,7 +150,6 @@ class Mind:
 		
 	def test(self):
 		self.moveForward()
-		self.collectPositions()
 		while self.currentDistance > self.distanceEpsilon:		
 			if self.lastDistance != None and self.lastDistance < self.currentDistance:
 				self.logger.logWarning("Wrong way!")

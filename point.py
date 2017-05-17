@@ -12,14 +12,14 @@ class Point:
 		self.y = y_init
 		
 	def getAngleTo(self, point):
-		if point.x == None or point.y == None or self.x == None or self.y == None:
+		if point.isNone() or self.isNone():
 			return None
 		y = sin(point.x - self.x) * cos(point.y)
 		x = cos(self.y) * sin(point.y) - sin(self.y) * cos(point.y) * cos(point.x - self.x)
 		return degrees(atan2(y, x))
 		
 	def getDistanceFrom(self, point): #previously this was 'haversine'
-		if point.x == None or point.y == None or self.x == None or self.y == None:
+		if point.isNone() or self.isNone():
 			return None
 	
 		# convert decimal degrees to radians 
@@ -36,5 +36,5 @@ class Point:
 	def __str__(self):
 		return "{x} {y}".format(x=self.x, y=self.y)
 		
-	"""def print_(self):
-		print str(self)"""
+	def isNone(self):
+		return self.x == None or self.y == None

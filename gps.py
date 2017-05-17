@@ -17,6 +17,8 @@ class gpsQueryThread (threading.Thread):
 		print "GPS query thread starts"
 		while self.parent.running:
 			self.gps.update()
+			while not self.gps.changed:
+				self.gps.update()
 			self.parent.updateData(self.gps.longitude, self.gps.latitude)
 			time.sleep(self.queryTime)
 		print "GPS query thread ends"
