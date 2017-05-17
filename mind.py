@@ -154,6 +154,14 @@ class Mind:
 		self.engine.stop()
 		self.collectPositions()
 		
+	def serialQueue(self):
+		str = "["
+		for id, position in enumerate(self.positionQueue):
+			str += "{\"lon\": \"" + position.x + "\", \"lat\": \"" + position.y + "\"}"
+			if id <= len(self.positionQueue):
+				str += ","
+		str += "]"
+		
 	def test(self):
 		self.moveForward()
 		while self.currentDistance > self.distanceEpsilon:		
@@ -168,7 +176,7 @@ class Mind:
 				self.turnRightABit()
 			self.moveForward()
 			
-			self.sqlcontroller.logState(self.currentPosition, "asd", "asd", self.currentAngle, self.currentAngleToCheckpoint, self.currentDistance, 1, True, True)
+			self.sqlcontroller.logState(self.currentPosition, "[]", self.serialQueue(), self.currentAngle, self.currentAngleToCheckpoint, self.currentDistance, 1, True, True)
 		
 		self.engine.cleanUp()
 		self.logger.log("Robot is at the checkpoint!")
