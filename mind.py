@@ -6,6 +6,8 @@ from collections import deque
 import logger
 import traceback
 
+import sqlcontroller
+
 class Mind:
 	checkPoint = None
 	positionQueue = None # for average counting and movement towards the check point
@@ -38,6 +40,8 @@ class Mind:
 		
 		time.sleep(1.5*self.gpsFrequency)
 		self.collectPositions()
+		
+		self.sqlcontroller = sqlcontroller.SQLController()
 		
 	def setNextPoint(self, checkPoint):
 		self.checkPoint = checkPoint
@@ -164,6 +168,8 @@ class Mind:
 				self.turnRightABit()
 			self.moveForward()
 			
+		self.sqlcontroller.logState(self.currentPosition, "asd", "asd", self.currentAngle, self.currentAngleToCheckpoint, self.currentDistance, 1, True, True)
+		
 		self.engine.cleanUp()
 		self.logger.log("Robot is at the checkpoint!")
 		
