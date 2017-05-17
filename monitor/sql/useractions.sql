@@ -31,7 +31,7 @@ CREATE TABLE `useractions` (
   `action` int(11) NOT NULL,
   `state` tinyint(1) NOT NULL DEFAULT '0',
   `skipped` tinyint(1) NOT NULL DEFAULT '0',
-  `params` json DEFAULT NULL,
+  `params` text DEFAULT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 

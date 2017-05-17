@@ -18,7 +18,7 @@ class Mind:
 
 	def __init__(self):
 		self.engine = engine.Engine()
-		self.gpsFrequency = 0.5
+		self.gpsFrequency = 0.2
 		self.gps = gps.GPS(self.gpsFrequency)
 		self.gps.start()
 		self.logger = logger.FileLogger()
@@ -150,7 +150,7 @@ class Mind:
 	def moveForward(self):
 		self.logger.logAction("moveForward")
 		self.engine.moveForward(60)
-		time.sleep(3)
+		time.sleep(0.1)
 		self.engine.stop()
 		self.collectPositions()
 		
@@ -168,7 +168,7 @@ class Mind:
 				self.turnRightABit()
 			self.moveForward()
 			
-		self.sqlcontroller.logState(self.currentPosition, "asd", "asd", self.currentAngle, self.currentAngleToCheckpoint, self.currentDistance, 1, True, True)
+			self.sqlcontroller.logState(self.currentPosition, "asd", "asd", self.currentAngle, self.currentAngleToCheckpoint, self.currentDistance, 1, True, True)
 		
 		self.engine.cleanUp()
 		self.logger.log("Robot is at the checkpoint!")
