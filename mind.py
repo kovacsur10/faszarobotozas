@@ -18,7 +18,7 @@ class Mind:
 
 	def __init__(self):
 		self.engine = engine.Engine()
-		self.gpsFrequency = 0.2
+		self.gpsFrequency = 0.5
 		self.gps = gps.GPS(self.gpsFrequency)
 		self.gps.start()
 		self.logger = logger.FileLogger()
@@ -26,7 +26,7 @@ class Mind:
 		self.checkPoint = Point(None, None)
 		self.positionQueue = deque()
 		self.maxPositions = 5
-		self.distanceEpsilon = 0.0
+		self.distanceEpsilon = 3
 		
 		self.lastPosition = Point(None, None)
 		self.lastAngle = float("inf")
@@ -131,7 +131,7 @@ class Mind:
 	
 	def turnLeftABit(self):
 		self.logger.logAction("turnLeftABit")
-		self.engine.turnLeft(100)
+		self.engine.turnLeft(60)
 		time.sleep(0.3)
 		self.engine.hardStop()
 	
@@ -149,31 +149,37 @@ class Mind:
 		
 	def moveForward(self):
 		self.logger.logAction("moveForward")
-		self.engine.moveForward(60)
-		time.sleep(0.1)
+		self.engine.moveForward(100)
+		time.sleep(3)
 		self.engine.stop()
 		self.collectPositions()
 		
 	def serialQueue(self):
-		str = "["
+		tmp = "["
 		for id, position in enumerate(self.positionQueue):
-			str += "{\"lon\": \"" + position.x + "\", \"lat\": \"" + position.y + "\"}"
-			if id <= len(self.positionQueue):
-				str += ","
-		str += "]"
+			tmp += "{\"lon\": \"" + str(position.x) + "\", \"lat\": \"" + str(position.y) + "\"}"
+			if id < len(self.positionQueue)-1:
+				tmp += ","
+		tmp += "]"
+		return tmp
 		
 	def test(self):
 		self.moveForward()
 		while self.currentDistance > self.distanceEpsilon:		
 			if self.lastDistance != None and self.lastDistance < self.currentDistance:
 				self.logger.logWarning("Wrong way!")
-			angle = self.currentAngleToCheckpoint - self.currentAngle
+			angle = - self.currentAngleToCheckpoint + self.currentAngle
+			if angle < -180.0:
+				angle += 360
+			elif angle > 180.0:
+				angle -= 360
+			self.logger.log(str(angle))
 			if angle < -140.0 or 140.0 < angle:
 				self.turn180degrees()
-			elif angle < -20.0:
-				self.turnLeftABit()
-			elif 20.0 < angle:
+			elif angle > 20.0:
 				self.turnRightABit()
+			elif -20.0 > angle:
+				self.turnLeftABit()
 			self.moveForward()
 			
 			self.sqlcontroller.logState(self.currentPosition, "[]", self.serialQueue(), self.currentAngle, self.currentAngleToCheckpoint, self.currentDistance, 1, True, True)
