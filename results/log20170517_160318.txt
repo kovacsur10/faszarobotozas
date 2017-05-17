@@ -1,0 +1,7 @@
+[getLocation]
+[getLocation]: 0.0 0.0
+[getLocation]: 0.0 0.0
+[getLocation]: 0.0 0.0
+[getLocation]: 0.0 0.0
+WARNING: None Position
+position: 0.0 0.0 angle: inf angleToCheckpoint: inf distance: inf

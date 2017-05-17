@@ -1,0 +1,23 @@
+[getLocation]
+[getLocation]: 0.0 0.0
+[getLocation]: 0.0 0.0
+[getLocation]: 0.0 0.0
+[getLocation]: 0.0 0.0
+WARNING: None Position
+position: 0.0 0.0 angle: inf angleToCheckpoint: inf distance: inf
+[setNextPoint]: 19.03478 47.284399
+[moveForward]
+[getLocation]: 0.0 0.0
+[getLocation]: 0.0 0.0
+[getLocation]: 0.0 0.0
+[getLocation]: 0.0 0.0
+[getLocation]: 0.0 0.0
+position: 0.0 0.0 angle: 0.0 angleToCheckpoint: -131.318868251 distance: 5572377.64886
+[turnLeftABit]
+[moveForward]
+[getLocation]: 0.0 0.0
+[getLocation]: 0.0 0.0
+[getLocation]: 0.0 0.0
+[getLocation]: 0.0 0.0
+[getLocation]: 0.0 0.0
+position: 0.0 0.0 angle: 0.0 angleToCheckpoint: -131.318868251 distance: 5572377.64886
