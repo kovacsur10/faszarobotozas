@@ -24,7 +24,7 @@ class Mind:
 		self.checkPoint = Point(None, None)
 		self.positionQueue = deque()
 		self.maxPositions = 5
-		self.distanceEpsilon = 3.0
+		self.distanceEpsilon = 0.0
 		
 		self.lastPosition = Point(None, None)
 		self.lastAngle = float("inf")
@@ -146,6 +146,8 @@ class Mind:
 	def moveForward(self):
 		self.logger.logAction("moveForward")
 		self.engine.moveForward(60)
+		time.sleep(3)
+		self.engine.stop()
 		self.collectPositions()
 		
 	def test(self):
@@ -155,16 +157,12 @@ class Mind:
 				self.logger.logWarning("Wrong way!")
 			angle = self.currentAngleToCheckpoint - self.currentAngle
 			if angle < -140.0 or 140.0 < angle:
-				self.engine.stop()
 				self.turn180degrees()
 			elif angle < -20.0:
-				self.engine.stop()
 				self.turnLeftABit()
 			elif 20.0 < angle:
-				self.engine.stop()
 				self.turnRightABit()
 			self.moveForward()
-			time.sleep(1)
 			
 		self.engine.cleanUp()
 		self.logger.log("Robot is at the checkpoint!")
