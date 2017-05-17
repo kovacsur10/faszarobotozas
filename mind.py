@@ -16,14 +16,23 @@ class Mind:
 
 	def __init__(self):
 		self.engine = engine.Engine()
-		self.gps = gps.GPS()
+		self.gpsFrequency = 0.5
+		self.gps = gps.GPS(self.gpsFrequency)
 		self.gps.start()
 		self.checkPoint = Point(None, None)
 		self.positionQueue = deque()
 		self.maxPositions = 5
+		
 		self.lastPosition = Point(None, None)
-		self.lastDistance = float("inf")
 		self.lastAngle = float("inf")
+		self.lastDistance = float("inf")
+		self.lastAngleToCheckpoint = float("inf")
+		
+		self.currentPosition = Point(None, None)
+		self.currentAngle = float("inf")
+		self.currentDistance = float("inf")
+		self.currentAngleToCheckpoint = float("inf")
+		
 		#self.distanceEpsilon = 3.0
 		self.distanceEpsilon = 0.0
 		self.logger = logger.FileLogger()
@@ -33,22 +42,13 @@ class Mind:
 		self.logger.logAction("setNextPoint", checkPoint)
 		
 	def getLocation(self):
-		self.lastDistance = self.getAverageDistanceFromCheckpoint()
-		self.lastAngle = self.getAverageAngleToCheckpoint()
-		
 		delta = self.gps.get()
-		self.lastPosition = delta[0]
-		self.logger.logAction("getLocation", self.lastPosition)
+		self.logger.logAction("getLocation", delta[0])
 		
 		if len(self.positionQueue) == self.maxPositions:
 			self.positionQueue.popleft()
-		self.positionQueue.append(self.lastPosition)
+		self.positionQueue.append(delta[0])
 		
-		if len(self.positionQueue) != 0:
-			self.positionQueue[-1].print_()
-			if self.checkPoint != None:
-				self.positionQueue[-1].getAngleTo(self.checkPoint)
-				
 	def getAverageDistanceFromCheckpoint(self):
 		if self.checkPoint != None and len(self.positionQueue) != 0:
 			distance = 0.0
@@ -56,22 +56,69 @@ class Mind:
 				try:
 					distance += position.getDistanceFrom(self.checkPoint)
 				except:
-					self.logger.log("LOL")
+					self.logger.logWarning("None Distance")
 			return distance / len(self.positionQueue)
 		else:
 			return float("inf")
 			
 	def getAverageAngleToCheckpoint(self):
 		if self.checkPoint != None and len(self.positionQueue) != 0:
-			distance = 0.0
+			angle = 0.0
 			for position in self.positionQueue:
 				try:
-					distance += position.getAngleTo(self.checkPoint)
+					angle += position.getAngleTo(self.checkPoint)
 				except:
-					self.logger.log("LOL angle")
-			return distance / len(self.positionQueue)
+					self.logger.logWarning("None Checkpoint Angle")
+			return angle / len(self.positionQueue)
 		else:
 			return float("inf")
+			
+	def getAveragePosition(self):
+		if self.checkPoint != None and len(self.positionQueue) != 0:
+			x = 0.0
+			y = 0.0
+			for position in self.positionQueue:
+				try:
+					x += position.x
+					y += position.y
+				except:
+					self.logger.logWarning("None Position")
+			n = len(self.positionQueue)
+			return Point(x / n, y / n)
+		else:
+			return Point(None, None)
+		
+	def getAverageAngle(self):
+		if self.checkPoint != None and len(self.positionQueue) != 0:
+			angle = 0.0
+			for position in self.positionQueue:
+				try:
+						angle += self.lastPosition.getAngleTo(position)
+				except:
+					self.logger.logWarning("None Angle")
+			return angle / len(self.positionQueue)
+		else:
+			return float("inf")
+			
+	def collectPositions(self):
+		self.lastPosition = self.currentPosition
+		self.lastDistance = self.currentDistance
+		self.lastAngle = self.currentAngle
+		self.lastAngleToCheckpoint = self.currentAngleToCheckpoint
+		
+		self.resetQueue()
+		while len(self.positionQueue) != self.maxPositions:
+			self.getLocation()
+			time.sleep(1.5*self.gpsFrequency)
+		
+		self.currentPosition = self.getAveragePosition()
+		self.currentDistance = self.getAverageDistanceFromCheckpoint()
+		self.currentAngle = self.getAverageAngle()
+		self.currentAngleToCheckpoint = self.getAverageAngleToCheckpoint()
+		
+		#print "angle: {ang} distance: {dist}".format(ang=self.lastAngle, dist=self.lastDistance)
+		self.logger.logState(self.currentPosition, self.currentAngle, 
+			self.currentAngleToCheckpoint, self.currentDistance)
 			
 	def resetQueue(self):
 		self.positionQueue = deque()
@@ -97,33 +144,27 @@ class Mind:
 	def moveForward(self):
 		self.logger.logAction("moveForward")
 		self.engine.moveForward(60)
-		self.resetQueue()
+		self.collectPositions()
 		
 	def test(self):
-		self.engine.moveForward(60)
-		while self.getAverageDistanceFromCheckpoint() > self.distanceEpsilon:
-			self.getLocation()
-		
-			if len(self.positionQueue) == self.maxPositions:			
-				if self.lastDistance < self.getAverageDistanceFromCheckpoint():
-					self.logger.log("WARNING: Wrong way!")
-				angle = self.getAverageAngleToCheckpoint()
-				if angle < -140.0 or 140.0 < angle:
-					self.engine.stop()
-					self.turn180degrees()
-					self.moveForward()
-				elif angle < -20.0:
-					self.engine.stop()
-					self.turnLeftABit()
-					self.moveForward()
-				elif 20.0 < angle:
-					self.engine.stop()
-					self.turnRightABit()
-					self.moveForward
-					
-				#print "angle: {ang} distance: {dist}".format(ang=self.lastAngle, dist=self.lastDistance)
-				self.logger.logState(self.lastPosition, self.lastAngle, self.lastDistance)
+		self.moveForward()
+		self.collectPositions()
+		while self.currentDistance > self.distanceEpsilon:		
+			if self.lastDistance != None and self.lastDistance < self.currentDistance:
+				self.logger.logWarning("Wrong way!")
+			angle = self.currentAngleToCheckpoint - self.currentAngle
+			if angle < -140.0 or 140.0 < angle:
+				self.engine.stop()
+				self.turn180degrees()
+			elif angle < -20.0:
+				self.engine.stop()
+				self.turnLeftABit()
+			elif 20.0 < angle:
+				self.engine.stop()
+				self.turnRightABit()
+			self.moveForward()
 			time.sleep(1)
+			
 		self.engine.cleanUp()
 		self.logger.log("Robot is at the checkpoint!")
 		
@@ -135,7 +176,6 @@ try:
 	mind.setNextPoint(Point(19.034780, 47.284399))
 	mind.test()
 except Exception as ex:
-	#print type(ex)
 	traceback.print_exc()
 finally:
 	mind.killAll()

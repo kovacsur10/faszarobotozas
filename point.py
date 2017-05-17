@@ -36,5 +36,5 @@ class Point:
 	def __str__(self):
 		return "{x} {y}".format(x=self.x, y=self.y)
 		
-	def print_(self):
-		print str(self)
+	"""def print_(self):
+		print str(self)"""

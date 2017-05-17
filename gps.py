@@ -28,10 +28,10 @@ class GPS:
 	actual = (None, None, None)
 	running = True
 
-	def __init__(self):
+	def __init__(self, frequency = 0.5):
 		self.gps = gpsbase.GPSBase()
 		self.seen = False
-		self.queryThread = gpsQueryThread(self.gps, 0.5, self)
+		self.queryThread = gpsQueryThread(self.gps, frequency, self)
 		self.previous = (None, None, None)
 		self.actual = (None, None, None)
 				
