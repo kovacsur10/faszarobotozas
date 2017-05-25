@@ -1,0 +1,14 @@
+#map{
+  background-image: url('../img/map.png');
+  width: 1127px;
+  height: 677px;
+  z-index: 1;
+}
+
+#robot{
+  background-image: url('../img/robot.png');
+  width: 40px;
+  height: 40px;
+  position: relative;
+  z-index: 2;
+}
