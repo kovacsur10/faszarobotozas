@@ -171,11 +171,11 @@ class Mind:
 		self.isMoving = False
 		self.collectPositions()
 		
-	def serialQueue(self):
+	def serialQueue(self, queue):
 		tmp = "["
-		for id, position in enumerate(self.positionQueue):
+		for id, position in enumerate(queue):
 			tmp += position.toJSON()
-			if id < len(self.positionQueue)-1:
+			if id < len(queue)-1:
 				tmp += ", "
 		tmp += "]"
 		return tmp
@@ -200,7 +200,7 @@ class Mind:
 				elif -20.0 > angle:
 					self.turnLeftABit()
 				self.moveForward()				
-				# self.sqlcontroller.logState(self.currentPosition, "[]", self.serialQueue(), self.currentDistance, self.currentAngleToCheckpoint, self.currentAngle, self.turnAngle, self.isMoving, self.isTurning)			
+				# self.sqlcontroller.logState(self.currentPosition, serialQueue(self.checkPoints), serialQueue(self.positionQueue), self.currentDistance, self.currentAngleToCheckpoint, self.currentAngle, self.turnAngle, self.isMoving, self.isTurning)			
 			self.logger.log("Robot is at the checkpoint!")
 			self.checkPoints.popleft()
 			
@@ -209,7 +209,7 @@ class Mind:
 		
 	def sqlWorker(self):
 		while not self.isStopped:
-			self.sqlcontroller.logState(self.currentPosition, "[]", self.serialQueue(), self.currentDistance, self.currentAngleToCheckpoint, self.currentAngle, self.turnAngle, self.isMoving, self.isTurning)
+			self.sqlcontroller.logState(self.currentPosition, serialQueue(self.checkPoints), serialQueue(self.positionQueue), self.currentDistance, self.currentAngleToCheckpoint, self.currentAngle, self.turnAngle, self.isMoving, self.isTurning)
 			self.isStopped = self.sqlcontroller.isStopped()
 			time.sleep(self.sqlFrequency);
 	
