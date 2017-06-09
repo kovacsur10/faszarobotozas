@@ -18,12 +18,23 @@ class SQLController:
 	#	except:
 	#		db.rollback()
 			
-	def logState(self, position, checkpoints, positions, angle, angleToCheckpoint, distance, time, moving, turning):
+	def logState(self, position, checkpoints, positions, distance, checkpointAngle, faceAngle, turnAngle, moving, turning):
+		"""
+			position : Point(x, y)
+			checkpoints : json string
+			positions : json string
+			distance : double
+			checkpointAngle : double
+			faceAngle : double
+			turnAngle : double
+			moving : boolean
+			turning : boolean
+		"""
 		try:
 			self.cursor.execute("""INSERT INTO state (longitude, latitude, checkpoints, positions, cpAngle, distance, faceAngle, turnAngle, moving, turning) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", 
-					(position.x, position.y, checkpoints, positions, angleToCheckpoint, distance, angle, time, moving, turning))
+					(position.x, position.y, checkpoints, positions, checkpointAngle, distance, faceAngle, turnAngle, moving, turning))
 			self.db.commit()
-			print "yaaay"
+			# print "yaaay"
 		except Exception as ex:
 			traceback.print_exc()
 			self.db.rollback()

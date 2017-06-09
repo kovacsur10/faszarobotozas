@@ -5,7 +5,7 @@ from point import Point
 from collections import deque
 import logger
 import traceback
-
+import threading
 import sqlcontroller
 
 class Mind:
@@ -38,10 +38,18 @@ class Mind:
 		self.currentDistance = float("inf")
 		self.currentAngleToCheckpoint = float("inf")
 		
+		self.turnAngle = Point(None, None)
+		self.isMoving = False
+		self.isTurning = False
+		self.isStopped = False
+		self.sqlFrequency = 0.5
+		
 		time.sleep(1.5*self.gpsFrequency)
 		self.collectPositions()
 		
 		self.sqlcontroller = sqlcontroller.SQLController()
+		self.sqlThread = threading.Thread(target=self.stateLogger)
+		self.sqlThread.start()
 		
 	def setNextPoint(self, checkPoint):
 		self.checkPoint = checkPoint
@@ -131,35 +139,43 @@ class Mind:
 	
 	def turnLeftABit(self):
 		self.logger.logAction("turnLeftABit")
+		self.isTurning = True
 		self.engine.turnLeft(60)
 		time.sleep(0.3)
 		self.engine.hardStop()
+		self.isTurning = False
 	
 	def turnRightABit(self):
 		self.logger.logAction("turnRightABit")
+		self.isTurning = True
 		self.engine.turnRight(100)
 		time.sleep(0.3)
 		self.engine.hardStop()
+		self.isTurning = False
 	
 	def turn180degrees(self):
 		self.logger.logAction("turn180degrees")
+		self.isTurning = True
 		self.engine.turnLeft(100)
 		time.sleep(1)
 		self.engine.hardStop()
+		self.isTurning = False
 		
 	def moveForward(self):
 		self.logger.logAction("moveForward")
+		self.isMoving = True
 		self.engine.moveForward(100)
 		time.sleep(3)
 		self.engine.stop()
+		self.isMoving = False
 		self.collectPositions()
 		
 	def serialQueue(self):
 		tmp = "["
 		for id, position in enumerate(self.positionQueue):
-			tmp += "{\"lon\": \"" + str(position.x) + "\", \"lat\": \"" + str(position.y) + "\"}"
+			tmp += position.toJSON()
 			if id < len(self.positionQueue)-1:
-				tmp += ","
+				tmp += ", "
 		tmp += "]"
 		return tmp
 		
@@ -173,6 +189,7 @@ class Mind:
 				angle += 360
 			elif angle > 180.0:
 				angle -= 360
+			self.turnAngle = angle
 			self.logger.log(str(angle))
 			if angle < -140.0 or 140.0 < angle:
 				self.turn180degrees()
@@ -182,13 +199,23 @@ class Mind:
 				self.turnLeftABit()
 			self.moveForward()
 			
-			self.sqlcontroller.logState(self.currentPosition, "[]", self.serialQueue(), self.currentAngle, self.currentAngleToCheckpoint, self.currentDistance, 1, True, True)
+			# self.sqlcontroller.logState(self.currentPosition, "[]", self.serialQueue(), self.currentAngle, self.currentAngleToCheckpoint, self.currentDistance, 1, True, True)
+			# self.sqlcontroller.logState(self.currentPosition, "[]", self.serialQueue(), self.currentDistance, self.currentAngleToCheckpoint, self.currentAngle, self.turnAngle, self.isMoving, self.isTurning)
 		
 		self.engine.cleanUp()
 		self.logger.log("Robot is at the checkpoint!")
+		self.killAll()
+		
+	def stateLogger(self):
+		while not self.isStopped:
+			self.sqlcontroller.logState(self.currentPosition, "[]", self.serialQueue(), self.currentDistance, self.currentAngleToCheckpoint, self.currentAngle, self.turnAngle, self.isMoving, self.isTurning)
+			time.sleep(self.sqlFrequency);
+	
 		
 	def killAll(self):
+		self.isStopped = True
 		self.gps.kill()
+	
 
 mind = Mind()
 try:

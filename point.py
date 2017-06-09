@@ -38,3 +38,6 @@ class Point:
 		
 	def isNone(self):
 		return self.x == None or self.y == None
+		
+	def toJSON(self):
+		return "{\"lon\": \"" + str(self.x) + "\", \"lat\": \"" + str(self.y) + "\"}"
