@@ -43,12 +43,13 @@ class Mind:
 		self.isTurning = False
 		self.isStopped = False
 		self.sqlFrequency = 0.5
+		self.waitFrequency = 0.1
 		
 		time.sleep(1.5*self.gpsFrequency)
 		self.collectPositions()
 		
 		self.sqlcontroller = sqlcontroller.SQLController()
-		self.sqlThread = threading.Thread(target=self.stateLogger)
+		self.sqlThread = threading.Thread(target=self.sqlWorker)
 		self.sqlThread.start()
 		
 	def setNextPoint(self, checkPoint):
@@ -141,7 +142,7 @@ class Mind:
 		self.logger.logAction("turnLeftABit")
 		self.isTurning = True
 		self.engine.turnLeft(60)
-		time.sleep(0.3)
+		self.wait(0.3)
 		self.engine.hardStop()
 		self.isTurning = False
 	
@@ -149,7 +150,7 @@ class Mind:
 		self.logger.logAction("turnRightABit")
 		self.isTurning = True
 		self.engine.turnRight(100)
-		time.sleep(0.3)
+		self.wait(0.3)
 		self.engine.hardStop()
 		self.isTurning = False
 	
@@ -157,7 +158,7 @@ class Mind:
 		self.logger.logAction("turn180degrees")
 		self.isTurning = True
 		self.engine.turnLeft(100)
-		time.sleep(1)
+		self.wait(1)
 		self.engine.hardStop()
 		self.isTurning = False
 		
@@ -165,7 +166,7 @@ class Mind:
 		self.logger.logAction("moveForward")
 		self.isMoving = True
 		self.engine.moveForward(100)
-		time.sleep(3)
+		self.wait(3)
 		self.engine.stop()
 		self.isMoving = False
 		self.collectPositions()
@@ -199,18 +200,22 @@ class Mind:
 				self.turnLeftABit()
 			self.moveForward()
 			
-			# self.sqlcontroller.logState(self.currentPosition, "[]", self.serialQueue(), self.currentAngle, self.currentAngleToCheckpoint, self.currentDistance, 1, True, True)
 			# self.sqlcontroller.logState(self.currentPosition, "[]", self.serialQueue(), self.currentDistance, self.currentAngleToCheckpoint, self.currentAngle, self.turnAngle, self.isMoving, self.isTurning)
-		
+			
 		self.engine.cleanUp()
 		self.logger.log("Robot is at the checkpoint!")
 		self.killAll()
 		
-	def stateLogger(self):
+	def sqlWorker(self):
 		while not self.isStopped:
 			self.sqlcontroller.logState(self.currentPosition, "[]", self.serialQueue(), self.currentDistance, self.currentAngleToCheckpoint, self.currentAngle, self.turnAngle, self.isMoving, self.isTurning)
+			self.isStopped = self.sqlcontroller.isStopped()
 			time.sleep(self.sqlFrequency);
 	
+	def wait(self, waitTime):
+		while not self.isStopped and waitTime > 0:
+			time.sleep(self.waitFrequency)
+			waitTime -= self.waitFrequency
 		
 	def killAll(self):
 		self.isStopped = True

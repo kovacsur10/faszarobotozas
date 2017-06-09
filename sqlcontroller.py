@@ -31,14 +31,39 @@ class SQLController:
 			turning : boolean
 		"""
 		try:
-			self.cursor.execute("""INSERT INTO state (longitude, latitude, checkpoints, positions, cpAngle, distance, faceAngle, turnAngle, moving, turning) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", 
-					(position.x, position.y, checkpoints, positions, checkpointAngle, distance, faceAngle, turnAngle, moving, turning))
+			self.cursor.execute("""
+				INSERT INTO state (longitude, latitude, checkpoints, positions, cpAngle, distance, faceAngle, turnAngle, moving, turning) 
+				VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+			""", (position.x, position.y, checkpoints, positions, checkpointAngle, distance, faceAngle, turnAngle, moving, turning))
 			self.db.commit()
 			# print "yaaay"
 		except Exception as ex:
 			traceback.print_exc()
 			self.db.rollback()
 				
+	def isStopped(self):
+		try:
+			self.cursor.execute("""
+				SELECT id 
+				FROM useractions 
+				WHERE action = 2 AND state = 0
+			""")
+			row = self.cursor.fetchone()
+			if row is not None:
+				print row
+				self.cursor.execute("""
+					UPDATE useractions 
+					SET sate = 1 
+					WHERE id = %s
+				""", row)
+				self.db.commit()
+				return True
+		except Exception as ex:
+			traceback.print_exc()
+			self.db.rollback()
+		return False
+			
+			
 	#def actionToID(self, action):
 	#	return 0
 		
