@@ -53,7 +53,7 @@ class SQLController:
 				print row
 				self.cursor.execute("""
 					UPDATE useractions 
-					SET sate = 1 
+					SET state = 1 
 					WHERE id = %s
 				""", row)
 				self.db.commit()

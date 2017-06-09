@@ -9,7 +9,7 @@ import threading
 import sqlcontroller
 
 class Mind:
-	checkPoint = None
+	checkPoints = None
 	positionQueue = None # for average counting and movement towards the check point
 	maxPositions = 5
 	
@@ -23,7 +23,7 @@ class Mind:
 		self.gps.start()
 		self.logger = logger.FileLogger()
 		
-		self.checkPoint = Point(None, None)
+		self.checkPoints = deque()
 		self.positionQueue = deque()
 		self.maxPositions = 5
 		self.distanceEpsilon = 3
@@ -53,7 +53,7 @@ class Mind:
 		self.sqlThread.start()
 		
 	def setNextPoint(self, checkPoint):
-		self.checkPoint = checkPoint
+		self.checkPoints.append(checkPoint)
 		self.logger.logAction("setNextPoint", checkPoint)
 		
 	def getLocation(self):
@@ -65,11 +65,11 @@ class Mind:
 		self.positionQueue.append(delta[0])
 		
 	def getAverageDistanceFromCheckpoint(self):
-		if not self.checkPoint.isNone() and len(self.positionQueue) != 0:
+		if len(self.checkPoints) > 0 and len(self.positionQueue) != 0:
 			distance = 0.0
 			for position in self.positionQueue:
 				try:
-					distance += position.getDistanceFrom(self.checkPoint)
+					distance += position.getDistanceFrom(self.checkPoints[0])
 				except:
 					self.logger.logWarning("None Distance")
 			return distance / len(self.positionQueue)
@@ -77,11 +77,11 @@ class Mind:
 			return float("inf")
 			
 	def getAverageAngleToCheckpoint(self):
-		if not self.checkPoint.isNone() and len(self.positionQueue) != 0:
+		if len(self.checkPoints) > 0 and len(self.positionQueue) != 0:
 			angle = 0.0
 			for position in self.positionQueue:
 				try:
-					angle += position.getAngleTo(self.checkPoint)
+					angle += position.getAngleTo(self.checkPoints[0])
 				except:
 					self.logger.logWarning("None Checkpoint Angle")
 			return angle / len(self.positionQueue)
@@ -182,28 +182,29 @@ class Mind:
 		
 	def test(self):
 		self.moveForward()
-		while self.currentDistance > self.distanceEpsilon:		
-			if self.lastDistance != None and self.lastDistance < self.currentDistance:
-				self.logger.logWarning("Wrong way!")
-			angle = - self.currentAngleToCheckpoint + self.currentAngle
-			if angle < -180.0:
-				angle += 360
-			elif angle > 180.0:
-				angle -= 360
-			self.turnAngle = angle
-			self.logger.log(str(angle))
-			if angle < -140.0 or 140.0 < angle:
-				self.turn180degrees()
-			elif angle > 20.0:
-				self.turnRightABit()
-			elif -20.0 > angle:
-				self.turnLeftABit()
-			self.moveForward()
-			
-			# self.sqlcontroller.logState(self.currentPosition, "[]", self.serialQueue(), self.currentDistance, self.currentAngleToCheckpoint, self.currentAngle, self.turnAngle, self.isMoving, self.isTurning)
+		while len(self.checkPoints) > 0:
+			while self.currentDistance > self.distanceEpsilon:		
+				if self.lastDistance != None and self.lastDistance < self.currentDistance:
+					self.logger.logWarning("Wrong way!")
+				angle = - self.currentAngleToCheckpoint + self.currentAngle
+				if angle < -180.0:
+					angle += 360
+				elif angle > 180.0:
+					angle -= 360
+				self.turnAngle = angle
+				self.logger.log(str(angle))
+				if angle < -140.0 or 140.0 < angle:
+					self.turn180degrees()
+				elif angle > 20.0:
+					self.turnRightABit()
+				elif -20.0 > angle:
+					self.turnLeftABit()
+				self.moveForward()				
+				# self.sqlcontroller.logState(self.currentPosition, "[]", self.serialQueue(), self.currentDistance, self.currentAngleToCheckpoint, self.currentAngle, self.turnAngle, self.isMoving, self.isTurning)			
+			self.logger.log("Robot is at the checkpoint!")
+			self.checkPoints.popleft()
 			
 		self.engine.cleanUp()
-		self.logger.log("Robot is at the checkpoint!")
 		self.killAll()
 		
 	def sqlWorker(self):
