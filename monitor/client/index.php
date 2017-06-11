@@ -30,6 +30,35 @@
 		<button id="removeCheckpointButton">REMOVE!</button>
 	</div>
 	
+	<div id="tableContainer">
+		<table id="t01">
+			<tr>
+				<td>Idő:</td>	
+				<td id="time"></td>
+			</tr>
+			<tr>
+				<td>Távolság:</td>	
+				<td id="distance"></td>
+			</tr>
+			<tr>
+				<td>Irány:</td>	
+				<td id="faceAngle"></td>
+			</tr>
+			<tr>
+				<td>Célirány:</td>	
+				<td id="cpAngle"></td>
+			</tr>
+			<tr>
+				<td>Mozog:</td>	
+				<td id="moving"></td>
+			</tr>
+			<tr>
+				<td>Forog:</td>	
+				<td id="turning"></td>
+			</tr>
+		</table> 
+	</div>
+	
 	<script type="text/javascript" src="js/client.js"></script>
 </body>
 </html>
