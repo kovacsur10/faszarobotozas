@@ -52,9 +52,13 @@ class Mind:
 		self.sqlThread = threading.Thread(target=self.sqlWorker)
 		self.sqlThread.start()
 		
-	def setNextPoint(self, checkPoint):
+	def setNextCheckpoint(self, checkPoint):
 		self.checkPoints.append(checkPoint)
-		self.logger.logAction("setNextPoint", checkPoint)
+		self.logger.logAction("setNextCheckpoint", checkPoint)
+	
+	def removeCheckpoint(self, checkPoint):
+		# TODO: mark element to skip
+		self.logger.logAction("removeCheckpoint", checkPoint)
 		
 	def getLocation(self):
 		delta = self.gps.get()
@@ -181,6 +185,9 @@ class Mind:
 		return tmp
 		
 	def test(self):
+		while self.isStopped and len(self.checkPoints) == 0:
+			time.sleep(sqlFrequency)
+			
 		self.moveForward()
 		while len(self.checkPoints) > 0:
 			while self.currentDistance > self.distanceEpsilon:		
@@ -209,8 +216,17 @@ class Mind:
 		
 	def sqlWorker(self):
 		while not self.isStopped:
-			self.sqlcontroller.logState(self.currentPosition, serialQueue(self.checkPoints), serialQueue(self.positionQueue), self.currentDistance, self.currentAngleToCheckpoint, self.currentAngle, self.turnAngle, self.isMoving, self.isTurning)
-			self.isStopped = self.sqlcontroller.isStopped()
+			if not self.isStopped:
+				self.sqlcontroller.logState(self.currentPosition, serialQueue(self.checkPoints), serialQueue(self.positionQueue), self.currentDistance, self.currentAngleToCheckpoint, self.currentAngle, self.turnAngle, self.isMoving, self.isTurning)
+				newCheckpoint = self.sqlcontroller.getNewCheckpoint()
+				if newCheckpoint is not None:
+					self.setNextCheckpoint(newCheckpoint)
+				removedCheckpoint = self.sqlcontroller.getRemovedCheckpoint()
+				if removedCheckpoint is not None:
+					self.removeCheckpoint(removedCheckpoint)
+				self.isStopped = self.sqlcontroller.isStopped()
+			else:
+				self.isStopped = not self.sqlcontroller.isStarted()
 			time.sleep(self.sqlFrequency);
 	
 	def wait(self, waitTime):
@@ -225,7 +241,7 @@ class Mind:
 
 mind = Mind()
 try:
-	mind.setNextPoint(Point(19.034780, 47.284399))
+	mind.setNextCheckpoint(Point(19.034780, 47.284399))
 	mind.test()
 except Exception as ex:
 	traceback.print_exc()

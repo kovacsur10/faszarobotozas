@@ -40,14 +40,35 @@ class SQLController:
 		except Exception as ex:
 			traceback.print_exc()
 			self.db.rollback()
-				
+		
+	def isStarted(self):
+		result = self.getAction(1)
+		return result is not None
+		
 	def isStopped(self):
+		result = self.getAction(2)
+		return result is not None
+	
+	def getNewCheckpoint(self):
+		result = self.getAction(3)
+		if result is None:
+			return None
+		return result[1]
+		
+	def getRemovedCheckpoint(self):
+		result = self.getAction(4)
+		if result is None:
+			return None
+		return result[1]
+			
+	def getAction(self, actionID):
+		row = None
 		try:
 			self.cursor.execute("""
-				SELECT id 
+				SELECT id, params
 				FROM useractions 
-				WHERE action = 2 AND state = 0
-			""")
+				WHERE action = %s AND state = 0
+			""", actionID)
 			row = self.cursor.fetchone()
 			if row is not None:
 				print row
@@ -57,12 +78,10 @@ class SQLController:
 					WHERE id = %s
 				""", row)
 				self.db.commit()
-				return True
 		except Exception as ex:
 			traceback.print_exc()
 			self.db.rollback()
-		return False
-			
+		return row
 			
 	#def actionToID(self, action):
 	#	return 0
