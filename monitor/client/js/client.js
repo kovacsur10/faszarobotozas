@@ -16,6 +16,11 @@ var dimensions = {
   height: 677 / (leftTop.lat - rightBottom.lat) 
 };
 
+var dimensionsInv = {
+  width: (rightBottom.lon - leftTop.lon) / 1127,
+  height: (leftTop.lat - rightBottom.lat) / 677 
+};
+
 class Robot {
   constructor(){
     this.setPosition(leftTop.lat, leftTop.lon);
@@ -24,19 +29,37 @@ class Robot {
   setPosition(lat, lon){
     this.lat = lat;
     this.lon = lon;
-    $("#robot").css({left: 1127 - ((rightBottom.lon - this.lon) * dimensions.width) - 20, top: (leftTop.lat - this.lat) * dimensions.height - 20});
+    $("#robot").css({left: Math.round((1127 - ((rightBottom.lon - this.lon) * dimensions.width))-20), top: Math.round(((leftTop.lat - this.lat) * dimensions.height)-20)});
+  }
+  
+  setPositionT(lat, lon){
+    var tmp = transformPosition(lat, lon);
+    this.setPosition(tmp.lat, tmp.lon);
   }
   
   setRotation(angle){
     this.angle = angle;
-    $("#robot").css({transform: "rotate("+(-angle-90.0)+"deg)"});
+    $("#robot").css({'transform': "rotate("+(-angle-90.0)+"deg)"});
   }
 }
 
 let robot = new Robot();
+var checkpoints = [];
 
 
+function transformPosition(latIn, lonIn){
+  return {
+    lat: Math.trunc(latIn) +  (latIn - Math.trunc(latIn)) * (10.0 / 6),
+    lon: Math.trunc(lonIn) +  (lonIn - Math.trunc(lonIn)) * (10.0 / 6)
+  };
+}
 
+function transformPositionBack(latIn, lonIn){
+  return {
+    lat: Math.trunc(latIn) +  (latIn - Math.trunc(latIn)) * (6.0 / 10),
+    lon: Math.trunc(lonIn) +  (lonIn - Math.trunc(lonIn)) * (6.0 / 10)
+  };
+}
 
 function startRobot(){
 	ajaxRequest("start", {}, function(value){
@@ -80,16 +103,39 @@ function ajaxRequest(mode, param_values, fun){
 	});
 }
 
-/*$(function(){
+$(function(){
 	setInterval(function() {
 		$.getJSON({
 			url: urlTag+"getdata.php",
 			success: function(value){
-				console.log(value);
+        if(value.length != 0){
+          value = value[0]
+          console.log(value);
+          
+          $("#time").html(value.timestamp);
+          $("#distance").html(value.distance);
+          $("#faceAngle").html(value.faceAngle);
+          $("#cpAngle").html(value.cpAngle);
+          $("#turning").html(value.turning == "1" ? "Igen" : "Nem");
+          $("#moving").html(value.moving == "1" ? "Igen" : "Nem");
+          checkpoints = value.checkpoints;
+          
+          robot.setPositionT(value.latitude, value.longitude);
+          robot.setRotation(value.faceAngle);
+        }
+        drawCheckpoints();
 			}
 		});
-	}, 1000);
-});*/
+	}, 100000000);
+});
+
+function drawCheckpoints(){
+  $(".cp").remove();
+  for(var i = 0; i < checkpoints.length; i++){
+    var pos = transformPosition(checkpoints[i].lat, checkpoints[i].lon);   
+    $("#map").append("<div id='"+checkpoints[i].id+"' class='cp' style='left:"+Math.round((1127 - ((rightBottom.lon - pos.lon) * dimensions.width)) - 5)+"px;top:"+Math.round(((leftTop.lat - pos.lat) * dimensions.height) - 5)+"px;'></div>");
+  }
+}
 
 $("#startButton").click(startRobot);
 $("#stopButton").click(stopRobot);
@@ -112,5 +158,28 @@ $("#removeCheckpointButton").click(function(){
   }		
 });
 
-robot.setPosition(47.47402, 19.05793);
-robot.setRotation(20.0);
+$("#map").click(function(e){
+  var posX = $(this).position().left;
+  var posY = $(this).position().top;
+  var lat = rightBottom.lat + dimensionsInv.height / (677 - (e.pageY - posY));
+  var lon = leftTop.lon + dimensionsInv.width * (e.pageX - posX);
+  var pos = transformPositionBack(lat, lon);
+  
+  $("#latitudeInput").val(pos.lat);
+  $("#longitudeInput").val(pos.lon);
+});
+
+//robot.setPosition(47.47402, 19.05793);
+robot.setPositionT(47.284429, 19.034813);
+robot.setRotation(0.0);
+checkpoints = [{
+  id: "alma",
+  lat: 47.284429,
+  lon: 19.034813
+},
+{
+  id: "korte",
+  lat: 47.28268,
+  lon: 19.0349
+}];
+drawCheckpoints();

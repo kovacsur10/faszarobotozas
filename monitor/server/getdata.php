@@ -16,13 +16,15 @@
 		exit();
 	}
 	
-	if($result = $conn->query("SELECT *  FROM state WHERE read_ = 0 ORDER BY id ASC;")){
+	if($result = $conn->query("SELECT *  FROM state WHERE read_ = 0 ORDER BY id ASC LIMIT 1;")){
 		$rows = [];
+		$id = -1;
 		while($r = $result->fetch_assoc()){
+			$id = $r['id'];
 			$rows[] = $r;
 		}
 		
-		if(!$conn->query("UPDATE state SET read_ = 1 WHERE read_ = 0;")){
+		if(!$conn->query("UPDATE state SET read_ = 1 WHERE read_ = 0 AND id=".$id.";")){
 			$errorJson = $errorJson.'UPDATE problem."}';
 			echo $errorJson;
 			exit();
