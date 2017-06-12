@@ -1,0 +1,16 @@
+[getLocation]
+[getLocation]: 19.03414 47.284483
+[getLocation]: 19.03414 47.284483
+[getLocation]: 19.03414 47.284483
+[getLocation]: 19.03414 47.284483
+WARNING: None Position
+position: 15.227312 37.8275864 angle: inf angleToCheckpoint: inf distance: inf
+[setNextCheckpoint]: 19.03414 47.284501
+[moveForward]
+[getLocation]: 19.034142 47.284485
+[getLocation]: 19.034143 47.284485
+[getLocation]: 19.034145 47.284485
+[getLocation]: 19.034145 47.284485
+[getLocation]: 19.034144 47.284485
+position: 19.0341438 47.284485 angle: 112.956823306 angleToCheckpoint: 13.1341113996 distance: 1.8041574968
+Robot is at the checkpoint!

@@ -1,0 +1,44 @@
+[getLocation]
+[getLocation]: 19.034142 47.284494
+[getLocation]: 19.034141 47.284497
+[getLocation]: 19.034142 47.284498
+[getLocation]: 19.034142 47.284499
+WARNING: None Position
+position: 15.2273134 37.8275976 angle: inf angleToCheckpoint: inf distance: inf
+[setNextCheckpoint]: 19.03478 47.284399
+[moveForward]
+[getLocation]: 19.03414 47.284501
+[getLocation]: 19.03414 47.284501
+[getLocation]: 19.03414 47.284501
+[getLocation]: 19.03414 47.284501
+[getLocation]: 19.03414 47.284501
+position: 19.03414 47.284501 angle: 112.958943202 angleToCheckpoint: -99.1684221113 distance: 49.5897047391
+-147.872634687
+[turn180degrees]
+[moveForward]
+[getLocation]: 19.034141 47.284501
+[getLocation]: 19.034141 47.284501
+[getLocation]: 19.034142 47.284501
+[getLocation]: 19.034142 47.284501
+[getLocation]: 19.034142 47.284501
+position: 19.0341416 47.284501 angle: -89.9999926697 angleToCheckpoint: -99.1910284037 distance: 49.4722240345
+9.19103573393
+[moveForward]
+[getLocation]: 19.034142 47.284502
+[getLocation]: 19.034142 47.284502
+[getLocation]: 19.034142 47.284502
+[getLocation]: 19.034142 47.284502
+[getLocation]: 19.034142 47.284502
+position: 19.034142 47.284502 angle: -21.5466751697 angleToCheckpoint: -99.2853193134 distance: 49.4684807411
+77.7386441437
+[turnRightABit]
+[moveForward]
+[getLocation]: 19.034142 47.284502
+[getLocation]: 19.034142 47.284502
+[getLocation]: 19.034142 47.284502
+[getLocation]: 19.034142 47.284502
+[getLocation]: 19.034142 47.284502
+position: 19.034142 47.284502 angle: 0.0 angleToCheckpoint: -99.2853193134 distance: 49.4684807411
+99.2853193134
+[turnRightABit]
+[moveForward]

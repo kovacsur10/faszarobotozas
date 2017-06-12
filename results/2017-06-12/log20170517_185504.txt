@@ -1,0 +1,17 @@
+[getLocation]
+[getLocation]: 19.034867 47.285104
+[getLocation]: 19.034873 47.285113
+[getLocation]: 19.034881 47.285122
+[getLocation]: 19.034881 47.285122
+WARNING: None Position
+position: 15.2279004 37.8280922 angle: inf angleToCheckpoint: inf distance: inf
+[setNextCheckpoint]: 19.03414 47.284501
+[moveForward]
+[setNextCheckpoint]: {
+  "id": 1,
+  "lat": 1,
+  "lon": 2
+}
+[getLocation]: 19.034822 47.28522
+[getLocation]: 19.034822 47.28522
+[getLocation]: 19.034778 47.285145

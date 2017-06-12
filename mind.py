@@ -38,7 +38,7 @@ class Mind:
 		self.currentDistance = float("inf")
 		self.currentAngleToCheckpoint = float("inf")
 		
-		self.turnAngle = Point(None, None)
+		self.turnAngle = float("inf")
 		self.isMoving = False
 		self.isTurning = False
 		self.isStopped = False
@@ -178,15 +178,17 @@ class Mind:
 	def serialQueue(self, queue):
 		tmp = "["
 		for id, position in enumerate(queue):
-			tmp += position.toJSON()
-			if id < len(queue)-1:
-				tmp += ", "
+			if position is not None:
+				tmp += position.toJSON()
+				if id < len(queue)-1:
+					tmp += ", "
 		tmp += "]"
 		return tmp
 		
 	def test(self):
-		while self.isStopped and len(self.checkPoints) == 0:
-			time.sleep(sqlFrequency)
+		#while self.isStopped and len(self.checkPoints) == 0:
+		#	time.sleep(sqlFrequency)
+		self.isStopped = False
 			
 		self.moveForward()
 		while len(self.checkPoints) > 0:
@@ -217,13 +219,24 @@ class Mind:
 	def sqlWorker(self):
 		while not self.isStopped:
 			if not self.isStopped:
-				self.sqlcontroller.logState(self.currentPosition, serialQueue(self.checkPoints), serialQueue(self.positionQueue), self.currentDistance, self.currentAngleToCheckpoint, self.currentAngle, self.turnAngle, self.isMoving, self.isTurning)
-				newCheckpoint = self.sqlcontroller.getNewCheckpoint()
-				if newCheckpoint is not None:
-					self.setNextCheckpoint(newCheckpoint)
-				removedCheckpoint = self.sqlcontroller.getRemovedCheckpoint()
-				if removedCheckpoint is not None:
-					self.removeCheckpoint(removedCheckpoint)
+				#print self.currentPosition
+				#print self.serialQueue(self.checkPoints)
+				#print self.serialQueue(self.positionQueue)
+				#print self.currentDistance
+				#print self.currentAngleToCheckpoint
+				#print self.currentAngle
+				#print self.turnAngle
+				#print self.isMoving
+				#print self.isTurning
+				if (self.currentDistance != float("inf")) and (self.currentAngle != float("inf")) and (self.currentAngleToCheckpoint != float("inf")) and (self.turnAngle != float("inf")):
+					#print "OKS"
+					self.sqlcontroller.logState(self.currentPosition, self.serialQueue(self.checkPoints), self.serialQueue(self.positionQueue), self.currentDistance, self.currentAngleToCheckpoint, self.currentAngle, self.turnAngle, self.isMoving, self.isTurning)
+				# newCheckpoint = self.sqlcontroller.getNewCheckpoint()
+				# if newCheckpoint is not None:
+					# self.setNextCheckpoint(newCheckpoint)
+				# removedCheckpoint = self.sqlcontroller.getRemovedCheckpoint()
+				# if removedCheckpoint is not None:
+					# self.removeCheckpoint(removedCheckpoint)
 				self.isStopped = self.sqlcontroller.isStopped()
 			else:
 				self.isStopped = not self.sqlcontroller.isStarted()
@@ -241,7 +254,8 @@ class Mind:
 
 mind = Mind()
 try:
-	mind.setNextCheckpoint(Point(19.034780, 47.284399))
+	mind.setNextCheckpoint(Point(19.03414, 47.284501))
+	#mind.setNextCheckpoint(Point(19.034780, 47.284399))
 	mind.test()
 except Exception as ex:
 	traceback.print_exc()

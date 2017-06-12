@@ -1,0 +1,57 @@
+[getLocation]
+[getLocation]
+[getLocation]: 19.03418 47.284423
+[getLocation]: 19.034181 47.284422
+[getLocation]: 19.034181 47.28442
+WARNING: None Position
+WARNING: None Position
+position: 11.4205084 28.370653 angle: inf angleToCheckpoint: inf distance: inf
+[setNextCheckpoint]: 19.03414 47.284501
+[moveForward]
+[getLocation]: 19.034186 47.284413
+[getLocation]: 19.034186 47.284413
+[getLocation]: 19.034186 47.284413
+[getLocation]: 19.034186 47.284413
+[getLocation]: 19.034186 47.284413
+position: 19.034186 47.284413 angle: -81.8973441443 angleToCheckpoint: 27.293672971 distance: 10.3821302625
+-109.191017115
+[turnLeftABit]
+[moveForward]
+[getLocation]: 19.034193 47.284412
+[getLocation]: 19.034193 47.284412
+[getLocation]: 19.034193 47.284412
+[getLocation]: 19.034193 47.284412
+[getLocation]: 19.034193 47.284412
+position: 19.034193 47.284412 angle: -98.234510253 angleToCheckpoint: 30.4487085182 distance: 10.6733346373
+WARNING: Wrong way!
+-128.683218771
+[turnLeftABit]
+[moveForward]
+[getLocation]: 19.034189 47.284418
+[getLocation]: 19.034189 47.284418
+[getLocation]: 19.034189 47.284418
+[getLocation]: 19.034189 47.284418
+[getLocation]: 19.034189 47.284418
+position: 19.034189 47.284418 angle: 33.3487224316 angleToCheckpoint: 30.2320071277 distance: 9.94176566976
+3.11671530391
+[moveForward]
+[getLocation]: 19.03419 47.284418
+[getLocation]: 19.034191 47.284418
+[getLocation]: 19.034191 47.284418
+[getLocation]: 19.034191 47.284418
+[getLocation]: 19.034191 47.284418
+position: 19.0341908 47.284418 angle: -89.9999917579 angleToCheckpoint: 31.1386700579 distance: 9.99307658112
+WARNING: Wrong way!
+-121.138661816
+[turnLeftABit]
+[moveForward]
+[getLocation]: 19.034195 47.284414
+[getLocation]: 19.034196 47.284414
+[getLocation]: 19.034198 47.284414
+[getLocation]: 19.034199 47.284414
+[getLocation]: 19.034199 47.284414
+position: 19.0341974 47.284414 angle: -122.772850321 angleToCheckpoint: 33.0690062182 distance: 10.5992545954
+WARNING: Wrong way!
+-155.841856539
+[turn180degrees]
+[moveForward]
